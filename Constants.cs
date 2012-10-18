@@ -10,6 +10,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
         public static class Methods
         {
             public const string ListRoleItem = "ListRoleItems";
+            public const string ListRoles = "ListRoles";
             public const string AddRoleItem = "AddRoleItems";
             public const string DeleteRoleItem = "DeleteRoleItems";
         }
@@ -19,11 +20,15 @@ namespace SourceCode.ServiceBroker.RolesManagement
         {
             public const string RoleName = "RoleName";
             public const string RoleItem = "RoleItem";
+            public const string RoleDescription = "Description";
+            public const string RoleExtraData = "ExtraData";
+            public const string RoleGuid = "Guid";
+            public const string RoleDynamic = "IsDynamic";
         }
 
         public static class Configs
         {
-            public const string K2ConnectionString = "K2 Management ConnectionString";
+            public const string K2ConnectionString = "K2 Management ConnectionString"; //TODO: Change to 'User Role Management Server' ?
             public const string AddDynamicServiceObjects = "Add Dynamic Service Objects";
         }
 
