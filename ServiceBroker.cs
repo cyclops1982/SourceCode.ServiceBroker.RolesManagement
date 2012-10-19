@@ -74,16 +74,16 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 serviceObject.Methods.Add(deleteRoleItem);
 
 
-                Method listRoleItem = new Method();
-                listRoleItem.Name = Constants.Methods.ListRoleItem;
-                listRoleItem.Type = MethodType.List;
-                listRoleItem.MetaData.DisplayName = "List Role Item";
-                listRoleItem.MetaData.Description = "List all role items for the given role.";
-                listRoleItem.InputProperties.Add(Constants.Properties.RoleName);
-                listRoleItem.ReturnProperties.Add(Constants.Properties.RoleItem);
-                listRoleItem.ReturnProperties.Add(Constants.Properties.RoleExclude);
-                listRoleItem.ReturnProperties.Add(Constants.Properties.RoleExtraData);
-                serviceObject.Methods.Add(listRoleItem);
+                Method listRoleItems = new Method();
+                listRoleItems.Name = Constants.Methods.ListRoleItems;
+                listRoleItems.Type = MethodType.List;
+                listRoleItems.MetaData.DisplayName = "List Role Items";
+                listRoleItems.MetaData.Description = "List all role items for the given role.";
+                listRoleItems.InputProperties.Add(Constants.Properties.RoleName);
+                listRoleItems.ReturnProperties.Add(Constants.Properties.RoleItem);
+                listRoleItems.ReturnProperties.Add(Constants.Properties.RoleExclude);
+                listRoleItems.ReturnProperties.Add(Constants.Properties.RoleExtraData);
+                serviceObject.Methods.Add(listRoleItems);
 
                 Method listRoles = new Method();
                 listRoles.Name = Constants.Methods.ListRoles;
@@ -137,8 +137,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 switch (serviceMethod.Name)
                 {
-                    case Constants.Methods.ListRoleItem:
-                        ListRoleItem();
+                    case Constants.Methods.ListRoleItems:
+                        ListRoleItems();
                         break;
                     case Constants.Methods.AddRoleItem:
                         AddRoleItem();
@@ -182,10 +182,11 @@ namespace SourceCode.ServiceBroker.RolesManagement
             throw new NotImplementedException();
         }
 
-        private void ListRoleItem()
+        // 19-10-2012 PBL - method name should contain an s, there can be more than 1 role items
+        private void ListRoleItems()
         {
             ServiceObject serviceObject = this.Service.ServiceObjects[0];
-            Method smoMethod = serviceObject.Methods[Constants.Methods.ListRoleItem];
+            Method smoMethod = serviceObject.Methods[Constants.Methods.ListRoleItems];
             serviceObject.Properties.InitResultTable();
 
             DataTable results = this.ServicePackage.ResultTable;
