@@ -39,10 +39,12 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 this.Service.MetaData.DisplayName = "Role Manager Service";
                 this.Service.MetaData.Description = "Provices ServiceObjects to add/update roles and manage the roleitems in the roles.";
 
+                //TODO: Create 2 ServiceObjects - one for Role management (add/delete/update role information)
+                //TODO: and one for Role Item managmeent (add/delete/update role information) - this will help split up the properties.
                 ServiceObject serviceObject = new ServiceObject();
                 serviceObject.Name = "RoleManagment";
                 serviceObject.MetaData.DisplayName = "Role Management";
-                serviceObject.MetaData.Description = "Manage roles (add/remove roleitems)";
+                serviceObject.MetaData.Description = "Manage roles (add/remove)";
                 serviceObject.Active = true;
 
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "The name of the role."));
@@ -51,7 +53,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
-
+                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleExclude, SoType.YesNo, "Excluded role item."));
 
                 Method addRoleItem = new Method();
                 addRoleItem.Name = Constants.Methods.AddRoleItem;
@@ -79,6 +81,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 listRoleItem.MetaData.Description = "List all role items for the given role.";
                 listRoleItem.InputProperties.Add(Constants.Properties.RoleName);
                 listRoleItem.ReturnProperties.Add(Constants.Properties.RoleItem);
+                listRoleItem.ReturnProperties.Add(Constants.Properties.RoleExclude);
+                listRoleItem.ReturnProperties.Add(Constants.Properties.RoleExtraData);
                 serviceObject.Methods.Add(listRoleItem);
 
                 Method listRoles = new Method();
@@ -180,19 +184,47 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
         private void ListRoleItem()
         {
-            throw new NotImplementedException();
+            ServiceObject serviceObject = this.Service.ServiceObjects[0];
+            Method smoMethod = serviceObject.Methods[Constants.Methods.ListRoleItem];
+            serviceObject.Properties.InitResultTable();
+
+            DataTable results = this.ServicePackage.ResultTable;
+
+            UserRoleManager urmServer = new UserRoleManager();
+            using (urmServer.CreateConnection())
+            {
+                urmServer.Connection.Open(WFMServerConnectionString);
+                Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+                RoleItemCollection<Role, RoleItem> items = role.Include;
+                foreach (RoleItem ri in items)
+                {
+                    DataRow row = results.NewRow();
+                    row[Constants.Properties.RoleItem] = ri.Name;
+                    row[Constants.Properties.RoleExtraData] = ri.ExtraData;
+                    row[Constants.Properties.RoleExclude] = false;
+                    results.Rows.Add(row);
+                }
+
+                items = role.Exclude; ;
+                foreach (RoleItem ri in items)
+                {
+                    DataRow row = results.NewRow();
+                    row[Constants.Properties.RoleItem] = ri.Name;
+                    row[Constants.Properties.RoleExtraData] = ri.ExtraData;
+                    row[Constants.Properties.RoleExclude] = true;
+                    results.Rows.Add(row);
+                }
+
+            }
         }
 
         private void ListRoles()
         {
             ServiceObject serviceObject = this.Service.ServiceObjects[0];
-
             serviceObject.Properties.InitResultTable();
             DataTable results = this.ServicePackage.ResultTable;
 
             UserRoleManager urmServer = new UserRoleManager();
-
-
             using (urmServer.CreateConnection())
             {
                 urmServer.Connection.Open(WFMServerConnectionString);
@@ -214,7 +246,6 @@ namespace SourceCode.ServiceBroker.RolesManagement
         /// "Scumbag base class" - requires an override that does not need implementation.
         /// </summary>
         public override void Extend() { }
-
 
 
         /// <summary>

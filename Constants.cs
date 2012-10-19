@@ -24,6 +24,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
             public const string RoleExtraData = "ExtraData";
             public const string RoleGuid = "Guid";
             public const string RoleDynamic = "IsDynamic";
+            public const string RoleExclude = "Exclude";
         }
 
         public static class Configs
