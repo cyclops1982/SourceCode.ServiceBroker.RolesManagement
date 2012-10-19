@@ -9,7 +9,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
     {
         public static class Methods
         {
-            public const string ListRoleItem = "ListRoleItem";
+            public const string ListRoleItems = "ListRoleItems";
             public const string ListRoles = "ListRoles";
             public const string AddRoleItem = "AddRoleItem";
             public const string DeleteRoleItem = "DeleteRoleItem";
