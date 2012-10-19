@@ -9,10 +9,13 @@ namespace SourceCode.ServiceBroker.RolesManagement
     {
         public static class Methods
         {
-            public const string ListRoleItem = "ListRoleItems";
+            /// 19-10-2012 PBL - do these constants reflect the real method names in the ServiceBroker class?
+            ///                  because then we should get rid of the 's' at the single item methods AddRolItem / DeleteRoleItem 
+            ///                  and add it for the ListRoleItems constant name?
+            public const string ListRoleItems = "ListRoleItems";
             public const string ListRoles = "ListRoles";
-            public const string AddRoleItem = "AddRoleItems";
-            public const string DeleteRoleItem = "DeleteRoleItems";
+            public const string AddRoleItem = "AddRoleItem";
+            public const string DeleteRoleItem = "DeleteRoleItem";
         }
 
 
