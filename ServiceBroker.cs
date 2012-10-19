@@ -49,6 +49,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "The name of the role."));
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The name of the role item."));
+                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleItemType, SoType.Text, "The type of role item (Group, User, SmartObject)."));
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleDescription, SoType.Text, "The description of the role."));
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
                 serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
@@ -63,6 +64,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleName);
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleItem);
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleExclude);
+                addRoleItem.InputProperties.Add(Constants.Properties.RoleItemType);
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleExtraData);
                 serviceObject.Methods.Add(addRoleItem);
 
@@ -84,6 +86,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 listRoleItems.InputProperties.Add(Constants.Properties.RoleName);
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleItem);
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleExclude);
+                listRoleItems.ReturnProperties.Add(Constants.Properties.RoleItemType);
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleExtraData);
                 serviceObject.Methods.Add(listRoleItems);
 
@@ -179,8 +182,6 @@ namespace SourceCode.ServiceBroker.RolesManagement
             ServiceObject serviceObject = this.Service.ServiceObjects[0];
             serviceObject.Properties.InitResultTable();
 
-            //DataTable results = this.ServicePackage.ResultTable;
-
             UserRoleManager urmServer = new UserRoleManager();
             using (urmServer.CreateConnection())
             {
@@ -206,7 +207,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                     }
 
                     if (remItem != null)
-                        role.Include.Remove(remItem);
+                        role.Exclude.Remove(remItem);
                 }
                 urmServer.UpdateRole(role);
             }
@@ -214,7 +215,42 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
         private void AddRoleItem()
         {
-            throw new NotImplementedException();
+            ServiceObject serviceObject = this.Service.ServiceObjects[0];
+            serviceObject.Properties.InitResultTable();
+
+            UserRoleManager urmServer = new UserRoleManager();
+            using (urmServer.CreateConnection())
+            {
+                urmServer.Connection.Open(WFMServerConnectionString);
+                Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+                string roleItemName = serviceObject.Properties[Constants.Properties.RoleItem].Value as string;
+                string roleItemType = serviceObject.Properties[Constants.Properties.RoleItemType].Value as string;
+                bool exclude = Convert.ToBoolean(serviceObject.Properties[Constants.Properties.RoleExclude].Value as string);
+
+                switch (roleItemType)
+                {
+                    case Constants.RoleItemType.Group:
+                        GroupItem gi = new GroupItem(roleItemName);
+                        if (exclude)
+                            role.Exclude.Add(gi);
+                        else 
+                            role.Include.Add(gi);
+                        break;
+                    case Constants.RoleItemType.User:
+                        UserItem ui = new UserItem(roleItemName);
+                        if (exclude)
+                            role.Exclude.Add(ui);
+                        else 
+                            role.Include.Add(ui);
+                        break;
+ 
+                    default:
+                        throw new ApplicationException(string.Format("Could not determine role item type. '{0}' is unknown or not supported.", roleItemType));
+                        break;
+                }
+
+                urmServer.UpdateRole(role);
+            }
         }
 
         private void ListRoleItems()
@@ -233,22 +269,40 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 foreach (RoleItem ri in items)
                 {
                     DataRow row = results.NewRow();
-                    row[Constants.Properties.RoleItem] = ri.Name;
-                    row[Constants.Properties.RoleExtraData] = ri.ExtraData;
-                    row[Constants.Properties.RoleExclude] = false;
-                    results.Rows.Add(row);
+                    results.Rows.Add(FillRoleItemRow(row, ri, false));
                 }
 
                 items = role.Exclude;
                 foreach (RoleItem ri in items)
                 {
                     DataRow row = results.NewRow();
-                    row[Constants.Properties.RoleItem] = ri.Name;
-                    row[Constants.Properties.RoleExtraData] = ri.ExtraData;
-                    row[Constants.Properties.RoleExclude] = true;
-                    results.Rows.Add(row);
+                    results.Rows.Add(FillRoleItemRow(row, ri, true));
                 }
             }
+        }
+
+        private static DataRow FillRoleItemRow(DataRow row, RoleItem ri, bool exclude)
+        {
+            row[Constants.Properties.RoleItem] = ri.Name;
+            row[Constants.Properties.RoleExtraData] = ri.ExtraData;
+            row[Constants.Properties.RoleExclude] = exclude;
+            if (ri is GroupItem)
+            {
+                row[Constants.Properties.RoleItemType] = Constants.RoleItemType.Group;
+            }
+            else if (ri is UserItem)
+            {
+                row[Constants.Properties.RoleItemType] = Constants.RoleItemType.User;
+            }
+            else if (ri is SmartObjectItem)
+            {
+                row[Constants.Properties.RoleItemType] = "SmartObject";
+            }
+            else
+            {
+                row[Constants.Properties.RoleItemType] = "Unknown";
+            }
+            return row;
         }
 
         private void ListRoles()
