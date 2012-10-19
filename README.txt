@@ -1,0 +1,2 @@
+This ServiceBroker aims to manage the roles within K2.
+The primary aim is to create an SMO of the Service Objects that can then be updated via SmartForms, giving the ability to do role management via SmartForms.
