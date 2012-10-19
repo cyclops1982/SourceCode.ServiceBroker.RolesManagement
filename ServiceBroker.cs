@@ -39,22 +39,21 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 this.Service.MetaData.DisplayName = "Role Manager Service";
                 this.Service.MetaData.Description = "Provices ServiceObjects to add/update roles and manage the roleitems in the roles.";
 
-                //TODO: Create 2 ServiceObjects - one for Role management (add/delete/update role information)
-                //TODO: and one for Role Item managmeent (add/delete/update role information) - this will help split up the properties.
-                ServiceObject serviceObject = new ServiceObject();
-                serviceObject.Name = "RoleManagment";
-                serviceObject.MetaData.DisplayName = "Role Management";
-                serviceObject.MetaData.Description = "Manage roles (add/remove)";
-                serviceObject.Active = true;
+                #region Role Item Management
+                ServiceObject roleItemManagement = new ServiceObject();
+                roleItemManagement.Name = "RoleItemManagment";
+                roleItemManagement.MetaData.DisplayName = "Role Item Management";
+                roleItemManagement.MetaData.Description = "Manage role items on roles.";
+                roleItemManagement.Active = true;
 
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "The name of the role."));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The name of the role item."));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleItemType, SoType.Text, "The type of role item (Group, User, SmartObject)."));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleDescription, SoType.Text, "The description of the role."));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
-                serviceObject.Properties.Add(CreateProperty(Constants.Properties.RoleExclude, SoType.YesNo, "Excluded role item."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "The name of the role to manage."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The name of the role item."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItemType, SoType.Text, "The type of role item (Group, User, SmartObject)."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDescription, SoType.Text, "The description of the role."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExclude, SoType.YesNo, "Excluded role item."));
 
                 Method addRoleItem = new Method();
                 addRoleItem.Name = Constants.Methods.AddRoleItem;
@@ -66,7 +65,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleExclude);
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleItemType);
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleExtraData);
-                serviceObject.Methods.Add(addRoleItem);
+                roleItemManagement.Methods.Add(addRoleItem);
 
                 Method deleteRoleItem = new Method();
                 deleteRoleItem.Name = Constants.Methods.DeleteRoleItem;
@@ -75,7 +74,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 deleteRoleItem.MetaData.Description = "Delete a role item to the given role.";
                 deleteRoleItem.InputProperties.Add(Constants.Properties.RoleName);
                 deleteRoleItem.InputProperties.Add(Constants.Properties.RoleItem);
-                serviceObject.Methods.Add(deleteRoleItem);
+                roleItemManagement.Methods.Add(deleteRoleItem);
 
 
                 Method listRoleItems = new Method();
@@ -88,7 +87,23 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleExclude);
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleItemType);
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleExtraData);
-                serviceObject.Methods.Add(listRoleItems);
+                roleItemManagement.Methods.Add(listRoleItems);
+
+                #endregion Role Item Management
+
+
+                #region Role Management
+                ServiceObject roleManagement = new ServiceObject();
+                roleManagement.Name = "RoleManagment";
+                roleManagement.MetaData.DisplayName = "Role Management";
+                roleManagement.MetaData.Description = "Add/update/delete/list roles.";
+                roleManagement.Active = true;
+
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "Name of the role."));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDescription, SoType.Text, "The description of the role."));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
 
                 Method listRoles = new Method();
                 listRoles.Name = Constants.Methods.ListRoles;
@@ -100,10 +115,12 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleGuid);
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleDynamic);
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleExtraData);
-                serviceObject.Methods.Add(listRoles);
+                roleManagement.Methods.Add(listRoles);
 
+                #endregion Role Management
 
-                this.Service.ServiceObjects.Add(serviceObject);
+                this.Service.ServiceObjects.Add(roleManagement);
+                this.Service.ServiceObjects.Add(roleItemManagement);
                 ServicePackage.IsSuccessful = true;
 
                 return base.DescribeSchema();
