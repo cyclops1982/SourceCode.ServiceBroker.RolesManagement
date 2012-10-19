@@ -62,6 +62,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 addRoleItem.MetaData.Description = "Add a role item to the given role.";
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleName);
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleItem);
+                addRoleItem.InputProperties.Add(Constants.Properties.RoleExclude);
+                addRoleItem.InputProperties.Add(Constants.Properties.RoleExtraData);
                 serviceObject.Methods.Add(addRoleItem);
 
                 Method deleteRoleItem = new Method();
@@ -174,7 +176,40 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
         private void DeleteRoleItem()
         {
-            throw new NotImplementedException();
+            ServiceObject serviceObject = this.Service.ServiceObjects[0];
+            serviceObject.Properties.InitResultTable();
+
+            //DataTable results = this.ServicePackage.ResultTable;
+
+            UserRoleManager urmServer = new UserRoleManager();
+            using (urmServer.CreateConnection())
+            {
+                urmServer.Connection.Open(WFMServerConnectionString);
+                Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+
+                string roleItemName = serviceObject.Properties[Constants.Properties.RoleItem].Value as string;
+                RoleItem remItem = null;
+                foreach (RoleItem ri in role.Include)
+                {
+                    if (string.Compare(ri.Name, roleItemName, true) == 0)
+                        remItem = ri;
+                }
+
+                if (remItem != null)
+                    role.Include.Remove(remItem);
+                else
+                {
+                    foreach (RoleItem ri in role.Exclude)
+                    {
+                        if (string.Compare(ri.Name, roleItemName, true) == 0)
+                            remItem = ri;
+                    }
+
+                    if (remItem != null)
+                        role.Include.Remove(remItem);
+                }
+                urmServer.UpdateRole(role);
+            }
         }
 
         private void AddRoleItem()
@@ -185,7 +220,6 @@ namespace SourceCode.ServiceBroker.RolesManagement
         private void ListRoleItem()
         {
             ServiceObject serviceObject = this.Service.ServiceObjects[0];
-            Method smoMethod = serviceObject.Methods[Constants.Methods.ListRoleItem];
             serviceObject.Properties.InitResultTable();
 
             DataTable results = this.ServicePackage.ResultTable;
@@ -205,7 +239,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                     results.Rows.Add(row);
                 }
 
-                items = role.Exclude; ;
+                items = role.Exclude;
                 foreach (RoleItem ri in items)
                 {
                     DataRow row = results.NewRow();
@@ -214,7 +248,6 @@ namespace SourceCode.ServiceBroker.RolesManagement
                     row[Constants.Properties.RoleExclude] = true;
                     results.Rows.Add(row);
                 }
-
             }
         }
 
