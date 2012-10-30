@@ -7,6 +7,10 @@ namespace SourceCode.ServiceBroker.RolesManagement
 {
     public static class Constants
     {
+        public static class ErrorText
+        {
+            public const string RoleNotExist = "Invalid Role Name - Role not found.";
+        }
         public static class Methods
         {
             public const string ListRoleItems = "ListRoleItems";

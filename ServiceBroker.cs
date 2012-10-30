@@ -201,6 +201,10 @@ namespace SourceCode.ServiceBroker.RolesManagement
             {
                 urmServer.Connection.Open(WFMServerConnectionString);
                 Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+                if (role == null)
+                {
+                    throw new ApplicationException(Constants.ErrorText.RoleNotExist);
+                }
 
                 string roleItemName = serviceObject.Properties[Constants.Properties.RoleItem].Value as string;
                 RoleItem remItem = null;
@@ -237,6 +241,10 @@ namespace SourceCode.ServiceBroker.RolesManagement
             {
                 urmServer.Connection.Open(WFMServerConnectionString);
                 Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+                if (role == null)
+                {
+                    throw new ApplicationException(Constants.ErrorText.RoleNotExist);
+                }
                 string roleItemName = serviceObject.Properties[Constants.Properties.RoleItem].Value as string;
                 string roleItemType = serviceObject.Properties[Constants.Properties.RoleItemType].Value as string;
                 bool exclude = Convert.ToBoolean(serviceObject.Properties[Constants.Properties.RoleExclude].Value as string);
@@ -279,6 +287,10 @@ namespace SourceCode.ServiceBroker.RolesManagement
             {
                 urmServer.Connection.Open(WFMServerConnectionString);
                 Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+                if (role == null)
+                {
+                    throw new ApplicationException(Constants.ErrorText.RoleNotExist);
+                }
                 RoleItemCollection<Role, RoleItem> items = role.Include;
                 foreach (RoleItem ri in items)
                 {
