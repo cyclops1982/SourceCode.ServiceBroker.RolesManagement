@@ -105,7 +105,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 Method listRoles = new Method();
                 listRoles.Name = Constants.Methods.ListRoles;
                 listRoles.Type = MethodType.List;
-                listRoles.MetaData.DisplayName = "List all roles";
+                listRoles.MetaData.DisplayName = "List Roles";
                 listRoles.MetaData.Description = "List all roles in the system.";
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleName);
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleDescription);
