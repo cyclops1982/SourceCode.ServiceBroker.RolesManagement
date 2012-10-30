@@ -49,9 +49,6 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "The name of the role to manage."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The name of the role item."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItemType, SoType.Text, "The type of role item (Group, User, SmartObject)."));
-                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDescription, SoType.Text, "The description of the role."));
-                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
-                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExclude, SoType.YesNo, "Excluded role item."));
 
@@ -102,7 +99,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "Name of the role."));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDescription, SoType.Text, "The description of the role."));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
-                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a rule Dynamic?"));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a role Dynamic?"));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
 
                 Method listRoles = new Method();
