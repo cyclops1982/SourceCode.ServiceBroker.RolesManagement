@@ -80,7 +80,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 Method listRoleItems = new Method();
                 listRoleItems.Name = Constants.Methods.ListRoleItems;
                 listRoleItems.Type = MethodType.List;
-                listRoleItems.MetaData.DisplayName = "List Role Item";
+                listRoleItems.MetaData.DisplayName = "List Role Items";
                 listRoleItems.MetaData.Description = "List all role items for the given role.";
                 listRoleItems.InputProperties.Add(Constants.Properties.RoleName);
                 listRoleItems.ReturnProperties.Add(Constants.Properties.RoleItem);
