@@ -7,6 +7,8 @@ using SourceCode.SmartObjects.Services.ServiceSDK.Types;
 using SourceCode.SmartObjects.Services.ServiceSDK.Objects;
 using SourceCode.Security.UserRoleManager.Management;
 using System.Data;
+using smartobjectClient = SourceCode.SmartObjects.Client;
+using SourceCode.SmartObjects.Client.Filters;
 
 namespace SourceCode.ServiceBroker.RolesManagement
 {
@@ -37,7 +39,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
             {
                 this.Service.Name = "RoleManagerService";
                 this.Service.MetaData.DisplayName = "Role Manager Service";
-                this.Service.MetaData.Description = "Provices ServiceObjects to add/update roles and manage the roleitems in the roles.";
+                this.Service.MetaData.Description = "Provices ServiceObjects to add/update roles and manage the role items in the roles.";
 
                 #region Role Item Management
                 ServiceObject roleItemManagement = new ServiceObject();
@@ -47,7 +49,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 roleItemManagement.Active = true;
 
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleName, SoType.Text, "The name of the role to manage."));
-                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The name of the role item."));
+                roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The FQN name of the role item."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItemType, SoType.Text, "The type of role item (Group, User, SmartObject)."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
                 roleItemManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExclude, SoType.YesNo, "Excluded role item."));
@@ -101,6 +103,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleGuid, SoType.Guid, "The guid of a role."));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleDynamic, SoType.YesNo, "Is a role Dynamic?"));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.IsRoleMember, SoType.YesNo, "Is a role member."));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The FQN name of the role item."));
 
                 Method listRoles = new Method();
                 listRoles.Name = Constants.Methods.ListRoles;
@@ -113,6 +117,16 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleDynamic);
                 listRoles.ReturnProperties.Add(Constants.Properties.RoleExtraData);
                 roleManagement.Methods.Add(listRoles);
+
+                Method isRoleMember = new Method();
+                isRoleMember.Name = Constants.Methods.FindUserInRole;
+                isRoleMember.Type = MethodType.Read;
+                isRoleMember.MetaData.DisplayName = "Find user in role";
+                isRoleMember.MetaData.Description = "Checks if the specified FQN of the user is a member of the specified role.";
+                isRoleMember.InputProperties.Add(Constants.Properties.RoleItem);
+                isRoleMember.InputProperties.Add(Constants.Properties.RoleName);
+                isRoleMember.ReturnProperties.Add(Constants.Properties.IsRoleMember);
+                roleManagement.Methods.Add(isRoleMember);
 
                 #endregion Role Management
 
@@ -168,6 +182,9 @@ namespace SourceCode.ServiceBroker.RolesManagement
                     case Constants.Methods.ListRoles:
                         ListRoles();
                         break;
+                    case Constants.Methods.FindUserInRole:
+                        FindUserInRole();
+                        break;
                 }
                 ServicePackage.IsSuccessful = true;
             }
@@ -188,6 +205,98 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 }
                 ServicePackage.ServiceMessages.Add(error.ToString(), MessageSeverity.Error);
                 ServicePackage.IsSuccessful = false;
+            }
+        }
+
+        private void FindUserInRole()
+        {
+            ServiceObject serviceObject = this.Service.ServiceObjects[0];
+            serviceObject.Properties.InitResultTable();
+
+            DataTable results = this.ServicePackage.ResultTable;
+            DataRow row;
+            bool isRoleMember = false;
+
+            UserRoleManager urmServer = new UserRoleManager();
+            using (urmServer.CreateConnection())
+            {
+                urmServer.Connection.Open(WFMServerConnectionString);
+                Role role = urmServer.GetRole(serviceObject.Properties[Constants.Properties.RoleName].Value as string);
+                if (role == null)
+                {
+                    throw new ApplicationException(Constants.ErrorText.RoleNotExist);
+                }
+
+                foreach (RoleItem roleItem in role.Include)
+                {
+                    string roleItemName = roleItem.Name;
+
+                    if (roleItem is UserItem)
+                    {
+                        // check if the specified username matches the current roleItem name
+                        if (serviceObject.Properties[Constants.Properties.RoleItem].Value.ToString() == roleItem.Name)
+                        {
+                            // user exist in role
+                            row = results.NewRow();
+                            results.Rows.Add(FillResultRow(row, true));
+                            isRoleMember = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // It is a group item, use the smartobject method UMUser.Get_Group_Users to resolve all group users  
+                        
+                        // Open a K2 Server connection
+                        smartobjectClient.SmartObjectClientServer smoServer = new smartobjectClient.SmartObjectClientServer();
+                        smoServer.CreateConnection();
+                        smoServer.Connection.Open(WFMServerConnectionString);
+
+                        // Get a handle to the ' UMUser' SmartObject
+                        smartobjectClient.SmartObject umUser = smoServer.GetSmartObject("UMUser");
+
+                        // Specify which method will be called
+                        smartobjectClient.SmartListMethod getGroupUsers = umUser.ListMethods["Get_Group_Users"];
+                        umUser.MethodToExecute = getGroupUsers.Name;
+
+                        // Split FQN in SecurityLabel and groupname
+                        string[] fqn = roleItem.Name.Split(':');
+                        
+                        // Set the input properties
+                        getGroupUsers.InputProperties["Labelname"].Value = fqn[0];
+                        getGroupUsers.InputProperties["Group_name"].Value = fqn[1];
+
+                        // Call the method
+                        smartobjectClient.SmartObjectList smartObjectGroupUsers = smoServer.ExecuteList(umUser);
+
+                        List<string> groupUsers = new List<string>();
+
+                        foreach (smartobjectClient.SmartObject smo in smartObjectGroupUsers.SmartObjectsList)
+                        {
+                            groupUsers.Add(smo.Properties["FQN"].Value);
+                        }
+
+                        foreach (string user in groupUsers)
+                        {
+                            // check if the specified username matches the current roleItem name
+                            if (serviceObject.Properties[Constants.Properties.RoleItem].Value.ToString() == user)
+                            {
+                                // user exist in role
+                                row = results.NewRow();
+                                results.Rows.Add(FillResultRow(row, true));
+                                isRoleMember = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // the specified user is not found in the specified role
+                if (!isRoleMember)
+                {
+                    row = results.NewRow();
+                    results.Rows.Add(FillResultRow(row, false));
+                }
             }
         }
 
@@ -268,7 +377,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
  
                     default:
                         throw new ApplicationException(string.Format("Could not determine role item type. '{0}' is unknown or not supported.", roleItemType));
-                        break;
+                        //break;
                 }
 
                 urmServer.UpdateRole(role);
@@ -328,6 +437,12 @@ namespace SourceCode.ServiceBroker.RolesManagement
             {
                 row[Constants.Properties.RoleItemType] = "Unknown";
             }
+            return row;
+        }
+
+        private static DataRow FillResultRow(DataRow row, bool isMember)
+        {
+            row[Constants.Properties.IsRoleMember] = isMember;
             return row;
         }
 

@@ -17,6 +17,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
             public const string ListRoles = "ListRoles";
             public const string AddRoleItem = "AddRoleItem";
             public const string DeleteRoleItem = "DeleteRoleItem";
+            public const string FindUserInRole = "FindUserInRole";
         }
 
         public static class RoleItemType
@@ -35,6 +36,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
             public const string RoleItem = "RoleItem";
             public const string RoleItemType = "RoleItemType";
             public const string RoleExclude = "Exclude";
+            public const string IsRoleMember = "IsRoleMember";
         }
 
         public static class Configs
