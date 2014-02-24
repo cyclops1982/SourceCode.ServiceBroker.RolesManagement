@@ -93,7 +93,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 #region Role Management
                 ServiceObject roleManagement = new ServiceObject();
-                roleManagement.Name = "RoleManagment";
+                roleManagement.Name = "RoleManagement";
                 roleManagement.MetaData.DisplayName = "Role Management";
                 roleManagement.MetaData.Description = "Add/update/delete/list roles.";
                 roleManagement.Active = true;
@@ -105,6 +105,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleExtraData, SoType.Text, "Extradata for the role."));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.IsRoleMember, SoType.YesNo, "Is a role member."));
                 roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItem, SoType.Text, "The FQN name of the role item."));
+                roleManagement.Properties.Add(CreateProperty(Constants.Properties.RoleItemType, SoType.Text, "The type of role item (Group, User, SmartObject)."));
 
                 Method listRoles = new Method();
                 listRoles.Name = Constants.Methods.ListRoles;
@@ -127,6 +128,27 @@ namespace SourceCode.ServiceBroker.RolesManagement
                 isRoleMember.InputProperties.Add(Constants.Properties.RoleName);
                 isRoleMember.ReturnProperties.Add(Constants.Properties.IsRoleMember);
                 roleManagement.Methods.Add(isRoleMember);
+
+                Method addRole = new Method();
+                addRole.Name = Constants.Methods.AddRole;
+                addRole.Type = MethodType.Execute;
+                addRole.MetaData.DisplayName = "Add Role";
+                addRole.MetaData.Description = "Add a new role to the system.";
+                addRole.InputProperties.Add(Constants.Properties.RoleName);
+                addRole.InputProperties.Add(Constants.Properties.RoleDescription);
+                addRole.InputProperties.Add(Constants.Properties.RoleDynamic);
+                addRole.InputProperties.Add(Constants.Properties.RoleItem);
+                addRole.InputProperties.Add(Constants.Properties.RoleItemType);
+                roleManagement.Methods.Add(addRole);
+
+                Method deleteRole = new Method();
+                deleteRole.Name = Constants.Methods.DeleteRole;
+                deleteRole.Type = MethodType.Execute;
+                deleteRole.MetaData.DisplayName = "Delete Role";
+                deleteRole.MetaData.Description = "Delete a role from the system.";
+                deleteRole.InputProperties.Add(Constants.Properties.RoleGuid);
+                deleteRole.InputProperties.Add(Constants.Properties.RoleName);
+                roleManagement.Methods.Add(deleteRole);
 
                 #endregion Role Management
 
@@ -181,6 +203,12 @@ namespace SourceCode.ServiceBroker.RolesManagement
                         break;
                     case Constants.Methods.ListRoles:
                         ListRoles();
+                        break;
+                    case Constants.Methods.AddRole:
+                        AddRole();
+                        break;
+                    case Constants.Methods.DeleteRole:
+                        DeleteRole();
                         break;
                     case Constants.Methods.FindUserInRole:
                         FindUserInRole();
@@ -466,6 +494,77 @@ namespace SourceCode.ServiceBroker.RolesManagement
                     row[Constants.Properties.RoleDynamic] = r.IsDynamic;
                     row[Constants.Properties.RoleExtraData] = r.ExtraData;
                     results.Rows.Add(row);
+                }
+            }
+        }
+
+        private void AddRole()
+        {
+            ServiceObject serviceObject = this.Service.ServiceObjects[0];
+            serviceObject.Properties.InitResultTable();
+
+            Role role = new Role();
+            UserRoleManager urmServer = new UserRoleManager();
+
+            using (urmServer.CreateConnection())
+            {
+                urmServer.Connection.Open(WFMServerConnectionString);
+
+                string roleName = serviceObject.Properties[Constants.Properties.RoleName].Value as string;
+                string roleDescription = serviceObject.Properties[Constants.Properties.RoleDescription].Value as string;
+                bool roleIsDynamic = Convert.ToBoolean(serviceObject.Properties[Constants.Properties.RoleDynamic].Value as string);
+
+                role.Name = roleName;
+                role.Description = roleDescription;
+                role.IsDynamic = roleIsDynamic;
+
+                // At least one roleItem has to be created with the new group
+                string roleItemName = serviceObject.Properties[Constants.Properties.RoleItem].Value as string;
+                string roleItemType = serviceObject.Properties[Constants.Properties.RoleItemType].Value as string;
+
+                switch (roleItemType)
+                {
+                    case Constants.RoleItemType.Group:
+                        GroupItem gi = new GroupItem(roleItemName);
+                        role.Include.Add(gi);
+                        break;
+                    case Constants.RoleItemType.User:
+                        UserItem ui = new UserItem(roleItemName);
+                        role.Include.Add(ui);
+                        break;
+                    default:
+                        throw new ApplicationException(string.Format("Could not determine role item type. '{0}' is unknown or not supported.", roleItemType));
+                    //break;
+                }
+
+                urmServer.CreateRole(role);
+                urmServer.Connection.Close();
+            }
+        }
+
+        private void DeleteRole()
+        {
+            ServiceObject serviceObject = this.Service.ServiceObjects[0];
+            serviceObject.Properties.InitResultTable();
+
+            UserRoleManager urmServer = new UserRoleManager();
+
+            using (urmServer.CreateConnection())
+            {
+                urmServer.Connection.Open(WFMServerConnectionString);
+
+                string roleName = serviceObject.Properties[Constants.Properties.RoleName].Value as string;
+                Guid roleGUID = new Guid(serviceObject.Properties[Constants.Properties.RoleGuid].Value as string);
+
+                Role role = urmServer.GetRole(roleName);
+                if (role == null)
+                {
+                    throw new ApplicationException(Constants.ErrorText.RoleNotExist);
+                }
+                else
+                {
+                    urmServer.DeleteRole(roleGUID, roleName);
+                    urmServer.Connection.Close();
                 }
             }
         }

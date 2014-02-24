@@ -15,6 +15,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
         {
             public const string ListRoleItems = "ListRoleItems";
             public const string ListRoles = "ListRoles";
+            public const string AddRole = "AddRole";
+            public const string DeleteRole = "DeleteRole";
             public const string AddRoleItem = "AddRoleItem";
             public const string DeleteRoleItem = "DeleteRoleItem";
             public const string FindUserInRole = "FindUserInRole";
