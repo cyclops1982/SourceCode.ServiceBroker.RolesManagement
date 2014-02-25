@@ -56,7 +56,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 Method addRoleItem = new Method();
                 addRoleItem.Name = Constants.Methods.AddRoleItem;
-                addRoleItem.Type = MethodType.Execute;
+                addRoleItem.Type = MethodType.Create;
                 addRoleItem.MetaData.DisplayName = "Add Role Item";
                 addRoleItem.MetaData.Description = "Add a role item to the given role.";
                 addRoleItem.InputProperties.Add(Constants.Properties.RoleName);
@@ -68,7 +68,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 Method deleteRoleItem = new Method();
                 deleteRoleItem.Name = Constants.Methods.DeleteRoleItem;
-                deleteRoleItem.Type = MethodType.Execute;
+                deleteRoleItem.Type = MethodType.Delete;
                 deleteRoleItem.MetaData.DisplayName = "Delete Role Item";
                 deleteRoleItem.MetaData.Description = "Delete a role item to the given role.";
                 deleteRoleItem.InputProperties.Add(Constants.Properties.RoleName);
@@ -131,7 +131,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 Method addRole = new Method();
                 addRole.Name = Constants.Methods.AddRole;
-                addRole.Type = MethodType.Execute;
+                addRole.Type = MethodType.Create;
                 addRole.MetaData.DisplayName = "Add Role";
                 addRole.MetaData.Description = "Add a new role to the system.";
                 addRole.InputProperties.Add(Constants.Properties.RoleName);
@@ -143,7 +143,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 Method deleteRole = new Method();
                 deleteRole.Name = Constants.Methods.DeleteRole;
-                deleteRole.Type = MethodType.Execute;
+                deleteRole.Type = MethodType.Delete;
                 deleteRole.MetaData.DisplayName = "Delete Role";
                 deleteRole.MetaData.Description = "Delete a role from the system.";
                 deleteRole.InputProperties.Add(Constants.Properties.RoleGuid);
