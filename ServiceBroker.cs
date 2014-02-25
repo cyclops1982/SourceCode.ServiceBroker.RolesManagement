@@ -404,7 +404,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                         break;
  
                     default:
-                        throw new ApplicationException(string.Format("Could not determine role item type. '{0}' is unknown or not supported.", roleItemType));
+                        throw new ApplicationException(string.Format(Constants.ErrorText.RoleTypeNotSupported, roleItemType));
                         //break;
                 }
 
@@ -459,11 +459,11 @@ namespace SourceCode.ServiceBroker.RolesManagement
             }
             else if (ri is SmartObjectItem)
             {
-                row[Constants.Properties.RoleItemType] = "SmartObject";
+                row[Constants.Properties.RoleItemType] = Constants.RoleItemType.SmartObject;
             }
             else
             {
-                row[Constants.Properties.RoleItemType] = "Unknown";
+                row[Constants.Properties.RoleItemType] = Constants.RoleItemType.Unknown;
             }
             return row;
         }
@@ -533,7 +533,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
                         role.Include.Add(ui);
                         break;
                     default:
-                        throw new ApplicationException(string.Format("Could not determine role item type. '{0}' is unknown or not supported.", roleItemType));
+                        throw new ApplicationException(string.Format(Constants.ErrorText.RoleTypeNotSupported, roleItemType));
                     //break;
                 }
 

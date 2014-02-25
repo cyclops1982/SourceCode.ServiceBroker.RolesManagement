@@ -10,6 +10,7 @@ namespace SourceCode.ServiceBroker.RolesManagement
         public static class ErrorText
         {
             public const string RoleNotExist = "Invalid Role Name - Role not found.";
+            public const string RoleTypeNotSupported = "Could not determine role item type. '{0}' is unknown or not supported.";
         }
         public static class Methods
         {
@@ -26,6 +27,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
         {
             public const string Group = "Group";
             public const string User = "User";
+            public const string SmartObject = "SmartObject";
+            public const string Unknown = "Unknown";
         }
 
         public static class Properties
