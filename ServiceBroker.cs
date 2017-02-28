@@ -313,7 +313,9 @@ namespace SourceCode.ServiceBroker.RolesManagement
                                 break;
                             }
                         }
-//TODO: Close connection1!!
+                        smoServer.Connection.Close();
+                        smoServer.Connection.Dispose();
+                        smoServer = null;
                     }
                 }
 
