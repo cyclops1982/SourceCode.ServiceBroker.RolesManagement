@@ -149,8 +149,8 @@ namespace SourceCode.ServiceBroker.RolesManagement
 
                 #endregion Role Management
 
-                this.Service.ServiceObjects.Add(roleManagement);
-                this.Service.ServiceObjects.Add(roleItemManagement);
+                this.Service.ServiceObjects.Create(roleManagement);
+                this.Service.ServiceObjects.Create(roleItemManagement);
                 ServicePackage.IsSuccessful = true;
 
                 return base.DescribeSchema();
