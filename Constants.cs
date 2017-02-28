@@ -40,7 +40,6 @@ namespace SourceCode.ServiceBroker.RolesManagement
             public const string RoleExtraData = "ExtraData";
             public const string RoleItem = "RoleItem";
             public const string RoleItemType = "RoleItemType";
-            public const string RoleExclude = "Exclude";
             public const string IsRoleMember = "IsRoleMember";
         }
 
